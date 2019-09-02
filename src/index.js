@@ -63,8 +63,6 @@ module.exports = function SitemapGenerator(uri, opts) {
   // create sitemap stream
   const sitemap = SitemapRotator(
     options.maxEntriesPerFile,
-    options.lastMod,
-    options.changeFreq,
     options.priorityMap
   );
 
@@ -104,12 +102,20 @@ module.exports = function SitemapGenerator(uri, opts) {
     ) {
       emitter.emit('ignore', url);
     } else {
-      emitter.emit('add', url);
+      const item = {
+        url,
+        options: {
+          lastMod: options.lastMod,
+          changeFreq: options.changeFreq,
+          priority: undefined
+        }
+      };
+      emitter.emit('add', item);
 
       if (sitemapPath !== null) {
         // eslint-disable-next-line
         const lastMod = queueItem.stateData.headers['last-modified'];
-        sitemap.addURL(url, depth, lastMod && format(lastMod, 'YYYY-MM-DD'));
+        sitemap.addURL(item, depth, lastMod && format(lastMod, 'YYYY-MM-DD'));
       }
     }
   });

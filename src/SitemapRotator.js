@@ -1,12 +1,7 @@
 const SitemapStream = require('./SitemapStream');
 const getCurrentDateTime = require('./helpers/getCurrentDateTime');
 
-module.exports = function SitemapRotator(
-  maxEntries,
-  lastModEnabled,
-  changeFreq,
-  priorityMap
-) {
+module.exports = function SitemapRotator(maxEntries, priorityMap) {
   const sitemaps = [];
   let count = 0;
   let current = null;
@@ -19,11 +14,11 @@ module.exports = function SitemapRotator(
     }, []);
 
   // adds url to stream
-  const addURL = (url, depth, lastMod = getCurrentDateTime()) => {
-    const currentDateTime = lastModEnabled ? lastMod : null;
+  const addURL = (item, depth, lastMod = getCurrentDateTime()) => {
+    const currentDateTime = item.options.lastMod ? lastMod : null;
 
     // exclude existing sitemap.xml
-    if (/sitemap\.xml$/.test(url)) {
+    if (/sitemap\.xml$/.test(item.url)) {
       return;
     }
 
@@ -41,17 +36,17 @@ module.exports = function SitemapRotator(
       count = 0;
     }
 
-    let priority = '';
+    let priority = item.options.priority;
 
     // if priorityMap exists, set priority based on depth
     // if depth is greater than map length, use the last value in the priorityMap
-    if (priorityMap && priorityMap.length > 0) {
+    if (!priority && priorityMap && priorityMap.length > 0) {
       priority = priorityMap[depth - 1]
         ? priorityMap[depth - 1]
         : priorityMap[priorityMap.length - 1];
     }
 
-    current.write(url, currentDateTime, changeFreq, priority);
+    current.write(item.url, currentDateTime, item.options.changeFreq, priority);
 
     count += 1;
   };
